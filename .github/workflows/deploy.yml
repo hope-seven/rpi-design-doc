@@ -1,0 +1,30 @@
+name: Deploy Static Flutter Page
+
+on:
+  push:
+    branches: [ main ] # Run on pushes to main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set Up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.29.2'
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Build Static Web Files
+        run: flutter build web --release --base-href /rpi-design-doc/
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/web # Deploy the generated static files
