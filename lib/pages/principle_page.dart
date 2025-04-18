@@ -1,7 +1,5 @@
 // principle_page.dart
 
-import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:hope7/components/principle_card.dart';
 import 'package:hope7/content/principle.dart'; // Assuming this provides the `principles` list
@@ -9,15 +7,20 @@ import 'package:hope7/content/principle.dart'; // Assuming this provides the `pr
 class PrinciplePage extends StatelessWidget {
   const PrinciplePage({super.key});
 
+  int _calculateCrossAxisCount(double width) {
+    if (width < 600) {
+      // phones
+      return 1;
+    } else {
+      // very large screens
+      return 3;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Adjust crossAxisCount based on the platform.
-    final int crossAxisCount;
-    if (kIsWeb) {
-      crossAxisCount = 3;
-    } else {
-      crossAxisCount = (Platform.isAndroid || Platform.isIOS) ? 2 : 3;
-    }
+    final screenWidth = MediaQuery.of(context).size.width;
+    final crossAxisCount = _calculateCrossAxisCount(screenWidth);
 
     return Scaffold(
       appBar: AppBar(

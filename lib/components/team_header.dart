@@ -1,4 +1,3 @@
-import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:hope7/components/team_card.dart';
 import 'package:hope7/models/team_member.dart';
@@ -11,54 +10,52 @@ class TeamHeaderComponent extends StatelessWidget {
 
   final List<TeamMember> members;
 
-  // This function checks the platform and returns the desired number of columns.
-  Future<int> _getColumnCount() async {
-    if (Platform.isAndroid || Platform.isIOS) {
-      return 1; // Mobile devices: 1 column
+  int _calculateColumnCount(double width) {
+    // if (width < 600) {
+    //   // phones
+    //   return 1;
+    if (width < 900) {
+      // small tablets / narrow windows
+      return 2;
     } else {
-      return 3; // Desktop devices: 3 columns
+      // large screens
+      return 4;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<int>(
-      future: _getColumnCount(),
-      builder: (context, snapshot) {
-        // Default to 3 columns if snapshot not ready.
-        int desiredColumns = snapshot.hasData ? snapshot.data! : 3;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 16),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                // Calculate spacing, side padding, and card width based on desired columns.
-                final spacing = 16.0;
-                final sidePadding = 16.0 * 2;
-                final cardWidth = (constraints.maxWidth - sidePadding - spacing * (desiredColumns - 1)) / desiredColumns;
+    return Column(
+      children: [
+        const SizedBox(height: 16),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final totalWidth = constraints.maxWidth;
+            final columns = _calculateColumnCount(totalWidth);
 
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Wrap(
-                    alignment: WrapAlignment.center,
-                    spacing: spacing,
-                    runSpacing: spacing,
-                    children: members
-                        .map(
-                          (member) => SizedBox(
-                            width: cardWidth,
-                            child: TeamCardComponent(member: member),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                );
-              },
-            ),
-          ],
-        );
-      },
+            // spacing & padding
+            const spacing = 16.0;
+            const horizontalPadding = 16.0;
+            final usableWidth = totalWidth - horizontalPadding * 2 - spacing * (columns - 1);
+            final cardWidth = usableWidth / columns;
+
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: horizontalPadding),
+              child: Wrap(
+                alignment: WrapAlignment.center,
+                spacing: spacing,
+                runSpacing: spacing,
+                children: members.map((member) {
+                  return SizedBox(
+                    width: cardWidth,
+                    child: TeamCardComponent(member: member),
+                  );
+                }).toList(),
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 }

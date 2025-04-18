@@ -21,10 +21,8 @@ class _PrototypePageState extends State<PrototypePage> {
     for (var item in pageItems) {
       _sectionKeys[item.title] = GlobalKey();
     }
-
     _scrollController.addListener(_handleScroll);
 
-    // Scroll to initial section after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.initialSection != null) {
         _scrollToSection(widget.initialSection!);
@@ -35,7 +33,7 @@ class _PrototypePageState extends State<PrototypePage> {
   void _scrollToSection(String title) {
     final key = _sectionKeys[title];
     if (key != null) {
-      _focusedSection.value = title; // Set focused section
+      _focusedSection.value = title;
       Scrollable.ensureVisible(
         key.currentContext!,
         duration: const Duration(milliseconds: 500),
@@ -47,13 +45,12 @@ class _PrototypePageState extends State<PrototypePage> {
   void _handleScroll() {
     for (var item in pageItems) {
       final key = _sectionKeys[item.title];
-      final context = key?.currentContext;
-      if (context != null) {
-        final box = context.findRenderObject() as RenderBox;
-        final position = box.localToGlobal(Offset.zero).dy;
-
-        if (position >= 0 &&
-            position <= MediaQuery.of(context).size.height * 0.5) {
+      final ctx = key?.currentContext;
+      if (ctx != null) {
+        final box = ctx.findRenderObject() as RenderBox;
+        final dy = box.localToGlobal(Offset.zero).dy;
+        final halfScreen = MediaQuery.of(ctx).size.height * 0.5;
+        if (dy >= 0 && dy <= halfScreen) {
           if (_focusedSection.value != item.title) {
             _focusedSection.value = item.title;
           }
@@ -72,21 +69,21 @@ class _PrototypePageState extends State<PrototypePage> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final bool isPhone = screenWidth < 600;
+
     return Scaffold(
       body: Row(
         children: [
-          // Navigation column (30%)
-          PrototypeNavBar(context),
+          // Collapse nav completely on small widths
+          if (!isPhone) PrototypeNavBar(),
 
-          // Figma design viewer
           Expanded(
             child: SingleChildScrollView(
               controller: _scrollController,
               child: Column(
                 children: [
                   for (int i = 0; i < pageItems.length; i++) ...[
-                    // Page Section
                     Container(
                       key: _sectionKeys[pageItems[i].title],
                       padding: const EdgeInsets.symmetric(vertical: 24),
@@ -100,21 +97,19 @@ class _PrototypePageState extends State<PrototypePage> {
                           Divider(
                             color: Colors.grey.shade300,
                             thickness: 1,
-                            height: size.height * 0.01,
-                            indent: size.width * 0.1,
-                            endIndent: size.width * 0.1,
+                            height: MediaQuery.of(context).size.height * 0.01,
+                            indent: screenWidth * 0.1,
+                            endIndent: screenWidth * 0.1,
                           ),
                           const SizedBox(height: 12),
                           Image.asset(
                             pageItems[i].assetPath,
-                            fit: BoxFit.contain,
+                            fit: BoxFit.fitWidth,
                           ),
                         ],
                       ),
                     ),
-
-                    // Arrow Divider (except after last item)
-                    if (i < pageItems.length - 1) DividerWithArrow(),
+                    if (i < pageItems.length - 1) const DividerWithArrow(),
                   ],
                 ],
               ),
@@ -125,23 +120,15 @@ class _PrototypePageState extends State<PrototypePage> {
     );
   }
 
-  Widget PrototypeNavBar(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    // Collapse when too narrow
-    if (screenWidth < 600) {
-      return const SizedBox.shrink(); // completely remove nav
-    }
-
+  Widget PrototypeNavBar() {
     return Container(
-      width: screenWidth * 0.3,
+      width: MediaQuery.of(context).size.width * 0.3,
       color: Colors.grey.shade100,
       child: Center(
         child: ValueListenableBuilder<String?>(
           valueListenable: _focusedSection,
           builder: (context, focused, _) {
             return SingleChildScrollView(
-              // <-- Wrap to prevent overflow even in mid-size
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children:

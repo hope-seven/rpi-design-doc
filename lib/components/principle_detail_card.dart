@@ -9,7 +9,6 @@ class PrincipleDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Get the first image URL if available.
     final imageUrl =
         principle.imageUrls.isNotEmpty ? principle.imageUrls.first : null;
 
@@ -23,7 +22,6 @@ class PrincipleDetailPage extends StatelessWidget {
         onDoubleTap: () => Navigator.pop(context),
         child: SingleChildScrollView(
           child: Padding(
-            // Add overall padding so the card doesn't go edge-to-edge.
             padding: const EdgeInsets.all(16.0),
             child: Card(
               elevation: 4,
@@ -34,7 +32,6 @@ class PrincipleDetailPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // The hero image spans the width; its height is computed using its intrinsic aspect ratio.
                   imageUrl != null
                       ? Hero(
                         tag: 'principleImage_${principle.name}',
@@ -42,7 +39,6 @@ class PrincipleDetailPage extends StatelessWidget {
                           imageUrl,
                           fit: BoxFit.fitWidth, // image fills the width
                           width: double.infinity,
-                          // No fixed height provided so that height adjusts based on aspect ratio.
                         ),
                       )
                       : Container(
@@ -50,7 +46,6 @@ class PrincipleDetailPage extends StatelessWidget {
                         height: 200,
                         color: Colors.transparent,
                       ),
-                  // The text content inside the card.
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Text(

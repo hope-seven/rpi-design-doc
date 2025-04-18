@@ -14,14 +14,13 @@ class TeamCardComponent extends StatefulWidget {
 
 class _TeamCardComponentState extends State<TeamCardComponent>
     with SingleTickerProviderStateMixin {
-  bool _isHovering = false;
   late final AnimationController _controller;
   late final Animation<double> _scaleAnimation;
+  bool _isHovering = false;
 
   @override
   void initState() {
     super.initState();
-    // Set up controller for the scale animation; use a lower bound less than 1 for a nice effect.
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -37,17 +36,15 @@ class _TeamCardComponentState extends State<TeamCardComponent>
     super.dispose();
   }
 
-  // Helper function to launch email app.
   Future<void> _launchEmail() async {
-    final Uri emailLaunchUri = Uri(
+    final uri = Uri(
       scheme: 'mailto',
       path: widget.member.email,
       query:
           'subject=Hello ${Uri.encodeComponent(widget.member.name)}&body=Hi,',
     );
-
-    if (await canLaunchUrl(emailLaunchUri)) {
-      await launchUrl(emailLaunchUri);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Could not launch email app')),
@@ -57,81 +54,143 @@ class _TeamCardComponentState extends State<TeamCardComponent>
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    // Determine avatar diameter: 40% of width on mobile, else 160px
+    double avatarDiameter;
+    if (screenWidth < 400) {
+      avatarDiameter = screenWidth * 0.5;
+    } else if (screenWidth < 800) {
+      avatarDiameter = screenWidth * 0.3;
+    } else {
+      avatarDiameter = 160.0;
+    }
+    final borderWidth = avatarDiameter * 0.06;
+    final emailIconSize = avatarDiameter * 0.35;
+
+    // Treat small width as phone
+    final bool isPhone = screenWidth < 600;
+
+    // Phone: static avatar + name, tap avatar to email
+    if (isPhone) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GestureDetector(
+            onTap: _launchEmail,
+            child: Container(
+              width: avatarDiameter,
+              height: avatarDiameter,
+              padding: EdgeInsets.all(borderWidth),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const LinearGradient(
+                  colors: [Colors.deepPurple, Colors.purpleAccent],
+                ),
+              ),
+              child: CircleAvatar(
+                backgroundImage: AssetImage(widget.member.imageAsset),
+                backgroundColor: Colors.grey[200],
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: avatarDiameter,
+            child: Text(
+              widget.member.name,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Desktop/Web: hover + animation
     return MouseRegion(
       onEnter: (_) {
-        setState(() {
-          _isHovering = true;
-        });
+        setState(() => _isHovering = true);
         _controller.forward();
       },
       onExit: (_) {
-        setState(() {
-          _isHovering = false;
-        });
+        setState(() => _isHovering = false);
         _controller.reverse();
       },
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Stack to overlay email icon on top of the avatar.
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              // Circular avatar with gradient border.
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: const LinearGradient(
-                    colors: [Colors.deepPurple, Colors.purpleAccent],
+          SizedBox(
+            width: avatarDiameter,
+            height: avatarDiameter,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // Gradient border + avatar
+                Container(
+                  width: avatarDiameter,
+                  height: avatarDiameter,
+                  padding: EdgeInsets.all(borderWidth),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: const LinearGradient(
+                      colors: [Colors.deepPurple, Colors.purpleAccent],
+                    ),
+                  ),
+                  child: CircleAvatar(
+                    backgroundImage: AssetImage(widget.member.imageAsset),
+                    backgroundColor: Colors.grey[200],
                   ),
                 ),
-                child: CircleAvatar(
-                  radius: 80,
-                  backgroundImage: AssetImage(widget.member.imageAsset),
-                  backgroundColor: Colors.grey[200],
-                ),
-              ),
-              // Email icon overlay: covers the whole avatar area.
-              Positioned.fill(
-                child: AnimatedOpacity(
-                  opacity: _isHovering ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 300),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Transform.scale(
-                        scale: _scaleAnimation.value,
-                        child: GestureDetector(
-                          onTap: _launchEmail,
-                          child: const Icon(
-                            Icons.mail_outline,
-                            size: 80,
-                            color: Colors.blueAccent,
+                // Email overlay on hover
+                Positioned.fill(
+                  child: AnimatedOpacity(
+                    opacity: _isHovering ? 1 : 0,
+                    duration: const Duration(milliseconds: 300),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.8),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: ScaleTransition(
+                          scale: _scaleAnimation,
+                          child: GestureDetector(
+                            onTap: _launchEmail,
+                            child: Icon(
+                              Icons.mail_outline,
+                              size: emailIconSize,
+                              color: Colors.blueAccent,
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 8),
-          // Name below the avatar.
-          Text(
-            widget.member.name,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
+          SizedBox(
+            width: avatarDiameter,
+            child: Text(
+              widget.member.name,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

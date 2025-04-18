@@ -1,15 +1,11 @@
-// ignore_for_file: library_private_types_in_public_api
-
 import 'package:flutter/material.dart';
-import 'package:animations/animations.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:animations/animations.dart';
 import 'package:hope7/pages/our_team_page.dart';
 import 'package:hope7/pages/principle_page.dart';
 import 'package:hope7/pages/prototype_page.dart';
 
-void main() {
-  runApp(MyApp());
-}
+void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -17,53 +13,49 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Hope 7 Design Document',
+      title: 'Hope 7 Design Document',
       theme: ThemeData(
         textTheme: GoogleFonts.poppinsTextTheme(),
         scaffoldBackgroundColor: Colors.white,
         useMaterial3: true,
         primarySwatch: Colors.blue,
-        appBarTheme: AppBarTheme(
+        appBarTheme: const AppBarTheme(
           backgroundColor: Colors.white,
-          foregroundColor: Colors.black, // Text color for AppBar
+          foregroundColor: Colors.black,
           elevation: 0,
           surfaceTintColor: Colors.transparent,
         ),
         tabBarTheme: TabBarTheme(
           labelColor: Colors.blueAccent,
-          labelStyle: TextStyle(
-            fontSize: 16, // tab text size
-            fontWeight: FontWeight.bold, // tab text weight
+          unselectedLabelColor: Colors.grey,
+          labelStyle: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
           ),
-          overlayColor: WidgetStateProperty.resolveWith<Color?>((
-            Set<WidgetState> states,
-          ) {
+          unselectedLabelStyle: GoogleFonts.poppins(fontSize: 16),
+          indicator: const UnderlineTabIndicator(
+            borderSide: BorderSide(color: Colors.blueAccent, width: 3),
+          ),
+          overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
             if (states.contains(WidgetState.hovered) ||
                 states.contains(WidgetState.focused) ||
                 states.contains(WidgetState.pressed)) {
-              return Colors.blue.withValues(alpha: 0.2);
+              return Colors.blueAccent.withValues(alpha: 0.2);
             }
-            return Colors.transparent; // default
+            return Colors.transparent;
           }),
-          unselectedLabelColor: Colors.grey,
-          // unselected tab text color
-          indicator: UnderlineTabIndicator(
-            borderSide: BorderSide(
-              color: Colors.blueAccent, // underline color
-              width: 3.0, // underline thickness
-            ),
-          ),
         ),
-        pageTransitionsTheme: PageTransitionsTheme(
+        pageTransitionsTheme: const PageTransitionsTheme(
           builders: {
             TargetPlatform.android: FadeThroughPageTransitionsBuilder(),
             TargetPlatform.iOS: FadeThroughPageTransitionsBuilder(),
             TargetPlatform.macOS: FadeThroughPageTransitionsBuilder(),
             TargetPlatform.windows: FadeThroughPageTransitionsBuilder(),
+            TargetPlatform.linux: FadeThroughPageTransitionsBuilder(),
           },
         ),
       ),
-      home: TopNavPage(),
+      home: const TopNavPage(),
     );
   }
 }
@@ -72,36 +64,37 @@ class TopNavPage extends StatefulWidget {
   const TopNavPage({super.key});
 
   @override
-  _TopNavPageState createState() => _TopNavPageState();
+  State<TopNavPage> createState() => _TopNavPageState();
 }
 
 class _TopNavPageState extends State<TopNavPage> with TickerProviderStateMixin {
-  int _selectedIndex = 1; // Default to PrototypePage
-
-  final List<Widget> _pages = [OurTeamPage(), PrototypePage(initialSection: 'Homepage'), PrinciplePage()];
-
+  int _selectedIndex = 1; // default to Prototype
+  final List<Widget> _pages = const [
+    OurTeamPage(),
+    PrototypePage(initialSection: 'Homepage'),
+    PrinciplePage(),
+  ];
   final List<String> _tabs = ['Our Team', 'Prototype', 'Principles'];
 
   @override
   Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isPhone = screenWidth < 600;
+
     return DefaultTabController(
       length: _tabs.length,
       initialIndex: _selectedIndex,
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            'Hope 7',
+            'Hope 7',
             style: GoogleFonts.poppins(
               fontWeight: FontWeight.bold,
               fontSize: 22,
             ),
           ),
           bottom: TabBar(
-            onTap: (index) {
-              setState(() {
-                _selectedIndex = index;
-              });
-            },
+            onTap: (i) => setState(() => _selectedIndex = i),
             tabs:
                 _tabs
                     .map(
@@ -111,25 +104,22 @@ class _TopNavPageState extends State<TopNavPage> with TickerProviderStateMixin {
                     .toList(),
           ),
         ),
-        body: PageTransitionSwitcher(
-          duration: Duration(milliseconds: 500),
-          transitionBuilder: (
-            Widget child,
-            Animation<double> primaryAnimation,
-            Animation<double> secondaryAnimation,
-          ) {
-            return FadeThroughTransition(
-              animation: primaryAnimation,
-              secondaryAnimation: secondaryAnimation,
-              fillColor: Colors.blue.withValues(
-                alpha:
-                    0.15, // Ensures the background is transparent during transition
-              ),
-              child: child,
-            );
-          },
-          child: _pages[_selectedIndex],
-        ),
+        body:
+            isPhone
+                // On phone: no page transition animation
+                ? _pages[_selectedIndex]
+                // On wider screens: use FadeThrough animation
+                : PageTransitionSwitcher(
+                  duration: const Duration(milliseconds: 500),
+                  transitionBuilder:
+                      (child, primary, secondary) => FadeThroughTransition(
+                        animation: primary,
+                        secondaryAnimation: secondary,
+                        fillColor: Colors.blueAccent.withOpacity(0.15),
+                        child: child,
+                      ),
+                  child: _pages[_selectedIndex],
+                ),
       ),
     );
   }
