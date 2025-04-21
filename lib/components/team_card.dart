@@ -3,60 +3,92 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hope7/models/team_member.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class TeamCardComponent extends StatefulWidget {
+class TeamCardComponent extends StatelessWidget {
   final TeamMember member;
 
   const TeamCardComponent({super.key, required this.member});
 
-  @override
-  State<TeamCardComponent> createState() => _TeamCardComponentState();
-}
-
-class _TeamCardComponentState extends State<TeamCardComponent>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _scaleAnimation;
-  bool _isHovering = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-      lowerBound: 0.8,
-      upperBound: 1.0,
-    );
-    _scaleAnimation = _controller;
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  Future<void> _launchEmail() async {
+  Future<void> _launchEmail(BuildContext context) async {
     final uri = Uri(
       scheme: 'mailto',
-      path: widget.member.email,
-      query:
-          'subject=Hello ${Uri.encodeComponent(widget.member.name)}&body=Hi,',
+      path: member.email,
+      query: 'subject=Hello ${Uri.encodeComponent(member.name)}&body=Hi,',
     );
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not launch email app')),
+        SnackBar(
+          content: Text(
+            'Could not launch email app, please send an email to ${member.email} directly.',
+          ),
+        ),
       );
     }
+  }
+
+  void _showProfileDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder:
+          (_) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ClipOval(
+                  child: Image.asset(
+                    member.imageAsset,
+                    width: 150,
+                    height: 150,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  member.name,
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _launchEmail(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(40),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text('Contact Me'),
+                ),
+                const SizedBox(height: 12),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: TextButton.styleFrom(
+                    minimumSize: const Size.fromHeight(40),
+                  ),
+                  child: const Text('Close'),
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
 
-    // Determine avatar diameter: 40% of width on mobile, else 160px
     double avatarDiameter;
     if (screenWidth < 400) {
       avatarDiameter = screenWidth * 0.5;
@@ -66,134 +98,44 @@ class _TeamCardComponentState extends State<TeamCardComponent>
       avatarDiameter = 160.0;
     }
     final borderWidth = avatarDiameter * 0.06;
-    final emailIconSize = avatarDiameter * 0.35;
 
-    // Treat small width as phone
-    final bool isPhone = screenWidth < 600;
-
-    // Phone: static avatar + name, tap avatar to email
-    if (isPhone) {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          GestureDetector(
-            onTap: _launchEmail,
-            child: Container(
-              width: avatarDiameter,
-              height: avatarDiameter,
-              padding: EdgeInsets.all(borderWidth),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: const LinearGradient(
-                  colors: [Colors.deepPurple, Colors.purpleAccent],
-                ),
-              ),
-              child: CircleAvatar(
-                backgroundImage: AssetImage(widget.member.imageAsset),
-                backgroundColor: Colors.grey[200],
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: avatarDiameter,
-            child: Text(
-              widget.member.name,
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      );
-    }
-
-    // Desktop/Web: hover + animation
-    return MouseRegion(
-      onEnter: (_) {
-        setState(() => _isHovering = true);
-        _controller.forward();
-      },
-      onExit: (_) {
-        setState(() => _isHovering = false);
-        _controller.reverse();
-      },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GestureDetector(
+          onTap: () => _showProfileDialog(context),
+          child: Container(
             width: avatarDiameter,
             height: avatarDiameter,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // Gradient border + avatar
-                Container(
-                  width: avatarDiameter,
-                  height: avatarDiameter,
-                  padding: EdgeInsets.all(borderWidth),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: const LinearGradient(
-                      colors: [Colors.deepPurple, Colors.purpleAccent],
-                    ),
-                  ),
-                  child: CircleAvatar(
-                    backgroundImage: AssetImage(widget.member.imageAsset),
-                    backgroundColor: Colors.grey[200],
-                  ),
-                ),
-                // Email overlay on hover
-                Positioned.fill(
-                  child: AnimatedOpacity(
-                    opacity: _isHovering ? 1 : 0,
-                    duration: const Duration(milliseconds: 300),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.8),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: ScaleTransition(
-                          scale: _scaleAnimation,
-                          child: GestureDetector(
-                            onTap: _launchEmail,
-                            child: Icon(
-                              Icons.mail_outline,
-                              size: emailIconSize,
-                              color: Colors.blueAccent,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: avatarDiameter,
-            child: Text(
-              widget.member.name,
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
+            padding: EdgeInsets.all(borderWidth),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                colors: [Colors.deepPurple, Colors.purpleAccent],
               ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            ),
+            child: CircleAvatar(
+              backgroundImage: AssetImage(member.imageAsset),
+              backgroundColor: Colors.grey[200],
             ),
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: avatarDiameter,
+          child: Text(
+            member.name,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 }

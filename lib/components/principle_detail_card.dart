@@ -37,8 +37,9 @@ class PrincipleDetailPage extends StatelessWidget {
                         tag: 'principleImage_${principle.name}',
                         child: ExtendedImage.asset(
                           imageUrl,
-                          fit: BoxFit.fitWidth, // image fills the width
-                          width: double.infinity,
+                          // fit: BoxFit.fitWidth, // image fills the width
+                          fit: BoxFit.cover,
+                          // width: double.infinity,
                         ),
                       )
                       : Container(
