@@ -79,6 +79,7 @@ class _TopNavPageState extends State<TopNavPage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
+    final double height = MediaQuery.of(context).size.height;
     final bool isPhone = screenWidth < 600;
 
     return DefaultTabController(
@@ -86,12 +87,17 @@ class _TopNavPageState extends State<TopNavPage> with TickerProviderStateMixin {
       initialIndex: _selectedIndex,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(
-            'Hope 7',
-            style: GoogleFonts.poppins(
-              fontWeight: FontWeight.bold,
-              fontSize: 22,
-            ),
+          // title: Text(
+          //   'Hope 7',
+          //   style: GoogleFonts.poppins(
+          //     fontWeight: FontWeight.bold,
+          //     fontSize: 22,
+          //   ),
+          // ),
+          title: Image.asset(
+            'assets/pics/hope-seven-logo.png',
+            height: height * 0.09,
+            fit: BoxFit.contain,
           ),
           bottom: TabBar(
             onTap: (i) => setState(() => _selectedIndex = i),
@@ -115,7 +121,7 @@ class _TopNavPageState extends State<TopNavPage> with TickerProviderStateMixin {
                       (child, primary, secondary) => FadeThroughTransition(
                         animation: primary,
                         secondaryAnimation: secondary,
-                        fillColor: Colors.blueAccent.withOpacity(0.15),
+                        fillColor: Colors.blueAccent.withValues(alpha: .15),
                         child: child,
                       ),
                   child: _pages[_selectedIndex],

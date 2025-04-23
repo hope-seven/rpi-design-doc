@@ -17,7 +17,6 @@ class PrincipleDetailPage extends StatelessWidget {
         title: Text(principle.name),
         backgroundColor: Colors.transparent,
       ),
-      // Wrap the entire body in a GestureDetector to catch double taps.
       body: GestureDetector(
         onDoubleTap: () => Navigator.pop(context),
         child: SingleChildScrollView(
