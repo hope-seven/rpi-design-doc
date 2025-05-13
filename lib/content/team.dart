@@ -5,6 +5,7 @@ final List<TeamMember> teamMembers = [
     name: "Alexandor",
     imageAsset: "assets/avatars/alex.png",
     role: "grad",
+    email: ""
   ),
   TeamMember(
     name: "Priyanka",
@@ -16,6 +17,7 @@ final List<TeamMember> teamMembers = [
     name: "Alyssa",
     imageAsset: "assets/avatars/alyssa.jpg",
     role: "grad",
+    email: "bignea2@rpi.edu"
   ),
   TeamMember(
     name: "Tushar",

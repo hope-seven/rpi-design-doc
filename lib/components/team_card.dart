@@ -57,19 +57,19 @@ class TeamCardComponent extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _launchEmail(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(40),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text('Contact Me'),
-                ),
+                // ElevatedButton(
+                //   onPressed: () {
+                //     Navigator.of(context).pop();
+                //     _launchEmail(context);
+                //   },
+                //   style: ElevatedButton.styleFrom(
+                //     minimumSize: const Size.fromHeight(40),
+                //     shape: RoundedRectangleBorder(
+                //       borderRadius: BorderRadius.circular(10),
+                //     ),
+                //   ),
+                //   child: const Text('Contact Me'),
+                // ),
                 const SizedBox(height: 12),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
